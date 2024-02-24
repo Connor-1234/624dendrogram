@@ -1,0 +1,47 @@
+---
+title: "624 a4"
+output:
+  html_document:
+    df_print: paged
+date: "2024-02-24"
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(collapsibleTree)
+library(tidyverse)
+library(readxl)
+```
+```{r}
+study_data = read_excel('Public Health Surveillance.xlsx', sheet='Updated-Public Health Surveilla')
+study_data_dendogram = study_data[c('Health Event Under Surveillance', 'Sub-surveillance1', 'Platform #1')]
+study_data_dendogram = subset(study_data_dendogram, `Health Event Under Surveillance` == 'Behavioural Risk Factors')
+study_data_dendogram$count = 1
+```
+```{r}
+dendo = study_data_dendogram %>% 
+  group_by(`Health Event Under Surveillance`,`Sub-surveillance1`, `Platform #1`)%>%
+  summarise(articles = sum(count))
+
+
+dendo = dendo %>% 
+  group_by(`Sub-surveillance1`)%>%
+  mutate(rank = as.numeric(ordered(-articles)))
+
+dendo$colors = ifelse(dendo$rank==1, 'Gold', ifelse(dendo$rank==2, 'Silver', ifelse(dendo$rank==3, 'Sienna','White')))
+```
+
+
+```{r}
+colors = c('White','White','White','White','White',dendo$colors)
+collapsibleTree(dendo, root='Health Event Under Surveillance', hierarchy=c('Sub-surveillance1','Platform #1'),nodeSize=NULL, tooltip =TRUE, attribute='articles',fill=colors)
+```
+
+
+```{r}
+collapsibleTree(dendo, root='Health Event Under Surveillance', hierarchy=c('Sub-surveillance1','Platform #1'),nodeSize="articles", tooltip =TRUE, attribute='articles',fill=colors,linkLength = 450) 
+```
+
